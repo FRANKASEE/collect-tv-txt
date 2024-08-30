@@ -163,8 +163,6 @@ ty_dictionary = read_txt_to_array('主频道/体育频道.txt')
 dy_dictionary = read_txt_to_array('主频道/电影.txt')
 gat_dictionary = read_txt_to_array('主频道/港澳台.txt')
 
-# 定义
-urls = read_txt_to_array('assets/urls-daily.txt')
 
 # 读取纠错频道名称方法
 def load_corrections_name(filename):
@@ -199,6 +197,9 @@ def sort_data(order, data):
     
     sorted_data = sorted(data, key=sort_key)
     return sorted_data
+    
+# 定义
+urls = read_txt_to_array('assets/urls-daily.txt')
 
 # 处理
 for url in urls:
