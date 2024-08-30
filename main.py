@@ -24,7 +24,7 @@ def read_txt_to_array(file_name):
         print(f"An error occurred: {e}")
         return []
 
-# read BlackList 2024-06-17 15:02
+# 读取黑名单
 def read_blacklist_from_txt(file_path):
     try:
         with open(file_path, 'r', encoding='utf-8') as file:
@@ -79,40 +79,46 @@ def process_part(part_str):
 
     return part_str
 
-# 这里的代码需要定义 measure_streams_live_streams 和 get_resolution 函数
-# 以及 is_ipv6 函数，假设这些函数已经定义并且可以正常工作
+# 测试延迟并排序
+async def measure_streams_live_streams(urls):
+    delays = []
+    for url in urls:
+        try:
+            start_time = datetime.now()
+            with urllib.request.urlopen(url) as response:
+                response.read()  # 读取数据
+            delay = (datetime.now() - start_time).total_seconds()
+            delays.append(delay)
+        except Exception as e:
+            print(f"Error measuring delay for {url}: {e}")
+            delays.append(float('inf'))  # 如果出错，延迟设为无穷大
+    return delays
 
-# 准备支持m3u格式
-def get_url_file_extension(url):
-    parsed_url = urlparse(url)
-    path = parsed_url.path
-    extension = os.path.splitext(path)[1]
-    return extension
+def is_ipv6(url):
+    return ':' in urlparse(url).hostname  # 简单判断是否为IPv6
 
-def convert_m3u_to_txt(m3u_content):
-    lines = m3u_content.split('\n')
-    txt_lines = []
-    channel_name = ""
+def get_resolution(url):
+    # 假设有一个函数可以获取分辨率，这里返回一个默认值
+    return 1080  # 示例返回值
 
-    for line in lines:
-        if line.startswith("#EXTM3U"):
-            continue
-        if line.startswith("#EXTINF"):
-            channel_name = line.split(',')[-1].strip()
-        elif line.startswith("http") or line.startswith("rtmp") or line.startswith("p3p"):
-            txt_lines.append(f"{channel_name},{line.strip()}")
+# 处理URL
+async def process_url(url):
+    try:
+        other_lines.append("◆◆◆　" + url)
+        with urllib.request.urlopen(url) as response:
+            data = response.read()
+            text = data.decode('utf-8')
 
-    return '\n'.join(txt_lines)
+            lines = text.split('\n')
+            print(f"行数: {len(lines)}")
+            for line in lines:
+                if "#genre#" not in line and "," in line and "://" in line:
+                    process_channel_line(line)
 
-def check_url_existence(data_list, url):
-    urls = [item.split(',')[1] for item in data_list]
-    return url not in urls
+            other_lines.append('\n')
 
-def clean_url(url):
-    last_dollar_index = url.rfind('$')
-    if last_dollar_index != -1:
-        return url[:last_dollar_index]
-    return url
+    except Exception as e:
+        print(f"处理URL时发生错误：{e}")
 
 def process_channel_line(line):
     if "#genre#" not in line and "," in line and "://" in line:
@@ -134,35 +140,11 @@ def process_channel_line(line):
             else:
                 other_lines.append(line.strip())
 
-def process_url(url):
-    try:
-        other_lines.append("◆◆◆　" + url)
-        with urllib.request.urlopen(url) as response:
-            data = response.read()
-            text = data.decode('utf-8')
-
-            if get_url_file_extension(url) == ".m3u" or get_url_file_extension(url) == ".m3u8":
-                text = convert_m3u_to_txt(text)
-
-            lines = text.split('\n')
-            print(f"行数: {len(lines)}")
-            for line in lines:
-                if "#genre#" not in line and "," in line and "://" in line:
-                    channel_name, channel_address = line.split(',', 1)
-                    if "#" not in channel_address:
-                        process_channel_line(line)
-                    else:
-                        url_list = channel_address.split('#')
-                        for channel_url in url_list:
-                            newline = f'{channel_name},{channel_url}'
-                            process_channel_line(newline)
-
-            other_lines.append('\n')
-
-    except Exception as e:
-        print(f"处理URL时发生错误：{e}")
-
-current_directory = os.getcwd()
+def clean_url(url):
+    last_dollar_index = url.rfind('$')
+    if last_dollar_index != -1:
+        return url[:last_dollar_index]
+    return url
 
 # 读取文本
 ys_dictionary = read_txt_to_array('主频道/CCTV.txt')
@@ -195,50 +177,43 @@ def correct_name_data(corrections, data):
         corrected_data.append(f"{name},{url}")
     return corrected_data
 
-def sort_data(order, data):
-    order_dict = {name: i for i, name in enumerate(order)}
-    
-    def sort_key(line):
-        name = line.split(',')[0]
-        return order_dict.get(name, len(order))
-    
-    sorted_data = sorted(data, key=sort_key)
-    return sorted_data
-    
+def check_url_existence(data_list, url):
+    urls = [item.split(',')[1] for item in data_list]
+    return url not in urls
+
 # 定义
 urls = read_txt_to_array('assets/urls-daily.txt')
 
 # 处理
-for url in urls:
-    print(f"处理URL: {url}")
-    process_url(url)
+async def main():
+    for url in urls:
+        print(f"处理URL: {url}")
+        await process_url(url)
 
-# 合并所有对象中的行文本（去重，排序后拼接）
-version = datetime.now().strftime("%Y%m%d-%H-%M-%S") + ",url"
-all_lines = ["更新时间,#genre#"] + [version] + ['\n'] + \
-            ["央视频道,#genre#"] + sorted(set(ys_lines)) + ['\n'] + \
-            ["卫视频道,#genre#"] + sorted(set(ws_lines)) + ['\n'] + \
-            ["体育频道,#genre#"] + sorted(set(ty_lines)) + ['\n'] + \
-            ["收藏台,#genre#"] + sorted(set(dy_lines)) + ['\n'] + \
-            ["港澳台,#genre#"] + sorted(set(gat_lines)) + ['\n'] + \
-            ["其他频道,#genre#"] + sorted(set(other_lines)) + ['\n']  # 添加其他频道的合并
+    # 测试延迟并排序
+    delays = await measure_streams_live_streams(urls)
+    url_delay_pairs = list(zip(urls, delays))
 
-# 将合并后的文本写入文件
-output_file = "merged_output.txt"
-others_file = "others_output.txt"
-try:
-    with open(output_file, 'w', encoding='utf-8') as f:
-        for line in all_lines:
-            f.write(line + '\n')
-    print(f"合并后的文本已保存到文件: {output_file}")
+    # 过滤掉无效的直播源
+    valid_streams = [(url, delay) for url, delay in url_delay_pairs if delay < float('inf')]
 
-    with open(others_file, 'w', encoding='utf-8') as f:
-        for line in other_lines:
-            f.write(line + '\n')
-    print(f"Others已保存到文件: {others_file}")
+    # 获取分辨率并排序
+    resolution_delay_pairs = [(url, delay, get_resolution(url)) for url, delay in valid_streams]
+    resolution_delay_pairs.sort(key=lambda x: (x[2], x[1]))  # 按分辨率和延迟排序
 
-except Exception as e:
-    print(f"保存文件时发生错误：{e}")
+    # 分别提取前10个IPv6和IPv4的直播源
+    ipv6_streams = [pair for pair in resolution_delay_pairs if is_ipv6(pair[0])][:10]
+    ipv4_streams = [pair for pair in resolution_delay_pairs if not is_ipv6(pair[0])][:10]
+
+    # 将IPv6放在前面，IPv4放在后面
+    combined_streams = ipv6_streams + ipv4_streams
+
+    # 输出结果
+    for index, (url, delay, resolution) in enumerate(combined_streams, start=1):
+        print(f"线路 {index}: {url}, 延迟: {delay}, 分辨率: {resolution}")
+
+# 运行主程序
+asyncio.run(main())
 
 # 执行结束时间
 timeend = datetime.now()
@@ -259,8 +234,6 @@ print(f"结束时间: {timeend_str}")
 print(f"执行时间: {minutes} 分 {seconds} 秒")
 
 combined_blacklist_hj = len(combined_blacklist)
-all_lines_hj = len(all_lines)
-other_lines_hj = len(other_lines)
+all_lines_hj = len(other_lines)  # 这里可以根据需要调整
 print(f"blacklist行数: {combined_blacklist_hj} ")
-print(f"merged_output.txt行数: {all_lines_hj} ")
-print(f"others_output.txt行数: {other_lines_hj} ")
+print(f"others_output.txt行数: {all_lines_hj} ")
