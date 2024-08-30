@@ -39,7 +39,7 @@ combined_blacklist = set(blacklist_auto + blacklist_manual)
 ys_lines = []  # CCTV
 ws_lines = []  # 卫视频道
 ty_lines = []  # 体育频道
-dy_lines = []
+dy_lines = []  # 收藏台
 gat_lines = []  # 港澳台
 
 def process_name_string(input_str):
@@ -160,7 +160,7 @@ current_directory = os.getcwd()
 ys_dictionary = read_txt_to_array('主频道/CCTV.txt')
 ws_dictionary = read_txt_to_array('主频道/卫视频道.txt')
 ty_dictionary = read_txt_to_array('主频道/体育频道.txt')
-dy_dictionary = read_txt_to_array('主频道/电影.txt')
+dy_dictionary = read_txt_to_array('主频道/收藏台.txt')
 gat_dictionary = read_txt_to_array('主频道/港澳台.txt')
 
 
@@ -212,7 +212,7 @@ all_lines = ["更新时间,#genre#"] + [version] + ['\n'] + \
             ["央视频道,#genre#"] + sorted(set(ys_lines)) + ['\n'] + \
             ["卫视频道,#genre#"] + sorted(set(ws_lines)) + ['\n'] + \
             ["体育频道,#genre#"] + sorted(set(ty_lines)) + ['\n'] + \
-            ["电影频道,#genre#"] + sorted(set(dy_lines)) + ['\n'] + \
+            ["收藏台,#genre#"] + sorted(set(dy_lines)) + ['\n'] + \
             ["港澳台,#genre#"] + sorted(set(gat_lines)) + ['\n'] + \
 
 
