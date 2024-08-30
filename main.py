@@ -79,29 +79,20 @@ def process_part(part_str):
 
     return part_str
 
-# 测试延迟并排序
-async def measure_streams_live_streams(urls):
-    delays = []
-    for url in urls:
-        try:
-            start_time = datetime.now()
-            with urllib.request.urlopen(url) as response:
-                response.read()  # 读取数据
-            delay = (datetime.now() - start_time).total_seconds()
-            delays.append(delay)
-        except Exception as e:
-            print(f"Error measuring delay for {url}: {e}")
-            delays.append(float('inf'))  # 如果出错，延迟设为无穷大
-    return delays
-
 def is_ipv6(url):
     return ':' in urlparse(url).hostname  # 简单判断是否为IPv6
 
-def get_resolution(url):
-    # 假设有一个函数可以获取分辨率，这里返回一个默认值
-    return 1080  # 示例返回值
+async def measure_stream_delay(url):
+    try:
+        start_time = datetime.now()
+        with urllib.request.urlopen(url) as response:
+            response.read()  # 读取数据
+        delay = (datetime.now() - start_time).total_seconds()
+        return delay
+    except Exception as e:
+        print(f"Error measuring delay for {url}: {e}")
+        return float('inf')  # 如果出错，延迟设为无穷大
 
-# 处理URL
 async def process_url(url):
     try:
         other_lines.append("◆◆◆　" + url)
@@ -184,33 +175,35 @@ def check_url_existence(data_list, url):
 # 定义
 urls = read_txt_to_array('assets/urls-daily.txt')
 
-# 处理
 async def main():
+    # 处理所有 URL 并测量延迟
+    url_delay_pairs = []
     for url in urls:
         print(f"处理URL: {url}")
         await process_url(url)
+        delay = await measure_stream_delay(url)
+        url_delay_pairs.append((url, delay))
 
-    # 测试延迟并排序
-    delays = await measure_streams_live_streams(urls)
-    url_delay_pairs = list(zip(urls, delays))
+    # 分类 IPv6 和 IPv4
+    ipv6_streams = [(url, delay) for url, delay in url_delay_pairs if is_ipv6(url)]
+    ipv4_streams = [(url, delay) for url, delay in url_delay_pairs if not is_ipv6(url)]
 
-    # 过滤掉无效的直播源
-    valid_streams = [(url, delay) for url, delay in url_delay_pairs if delay < float('inf')]
+    # 按延迟排序
+    ipv6_streams.sort(key=lambda x: x[1])  # 按延迟升序排序
+    ipv4_streams.sort(key=lambda x: x[1])  # 按延迟升序排序
 
-    # 获取分辨率并排序
-    resolution_delay_pairs = [(url, delay, get_resolution(url)) for url, delay in valid_streams]
-    resolution_delay_pairs.sort(key=lambda x: (x[2], x[1]))  # 按分辨率和延迟排序
-
-    # 分别提取前10个IPv6和IPv4的直播源
-    ipv6_streams = [pair for pair in resolution_delay_pairs if is_ipv6(pair[0])][:10]
-    ipv4_streams = [pair for pair in resolution_delay_pairs if not is_ipv6(pair[0])][:10]
-
-    # 将IPv6放在前面，IPv4放在后面
-    combined_streams = ipv6_streams + ipv4_streams
+    # 选择前 10 个
+    top_ipv6_streams = ipv6_streams[:10]
+    top_ipv4_streams = ipv4_streams[:10]
 
     # 输出结果
-    for index, (url, delay, resolution) in enumerate(combined_streams, start=1):
-        print(f"线路 {index}: {url}, 延迟: {delay}, 分辨率: {resolution}")
+    print("Top 10 IPv6 Streams:")
+    for url, delay in top_ipv6_streams:
+        print(f"URL: {url}, Delay: {delay}")
+
+    print("Top 10 IPv4 Streams:")
+    for url, delay in top_ipv4_streams:
+        print(f"URL: {url}, Delay: {delay}")
 
 # 运行主程序
 asyncio.run(main())
@@ -234,6 +227,6 @@ print(f"结束时间: {timeend_str}")
 print(f"执行时间: {minutes} 分 {seconds} 秒")
 
 combined_blacklist_hj = len(combined_blacklist)
-all_lines_hj = len(other_lines)  # 这里可以根据需要调整
+all_lines_hj = len(other_lines)
 print(f"blacklist行数: {combined_blacklist_hj} ")
 print(f"others_output.txt行数: {all_lines_hj} ")
