@@ -74,6 +74,37 @@ def process_part(part_str):
 
     return part_str
 
+                            # 测试延迟并排序
+                            delays = asyncio.run(measure_streams_live_streams(filtered_urls))
+                            url_delay_pairs = list(zip(filtered_urls, delays))
+                            
+                            # 过滤掉无效的直播源
+                            valid_streams = [(url, delay) for url, delay in url_delay_pairs if delay < float('inf')]
+
+                            # 获取分辨率并排序
+                            resolution_delay_pairs = [(url, delay, get_resolution(url)) for url, delay in valid_streams]
+                            resolution_delay_pairs.sort(key=lambda x: (x[2], x[1]))  # 按分辨率和延迟排序
+
+                            # 分别提取前10个IPv6和IPv4的直播源
+                            ipv6_streams = [pair for pair in resolution_delay_pairs if is_ipv6(pair[0])][:10]
+                            ipv4_streams = [pair for pair in resolution_delay_pairs if not is_ipv6(pair[0])][:10]
+
+                            # 将IPv6放在前面，IPv4放在后面
+                            combined_streams = ipv6_streams + ipv4_streams
+
+                            total_urls = len(combined_streams)
+                            for index, (url, delay, resolution) in enumerate(combined_streams, start=1):
+                                if is_ipv6(url):
+                                    url_suffix = f"$IPV6" if total_urls == 1 else f"$IPV6『线路{index}』"
+                                else:
+                                    url_suffix = f"$IPV4" if total_urls == 1 else f"$IPV4『线路{index}』"
+                                if '$' in url:
+                                    base_url = url.split('$', 1)[0]
+                                else:
+                                    base_url = url
+
+                                new_url = f"{base_url}{url_suffix}"
+
 # 准备支持m3u格式
 def get_url_file_extension(url):
     parsed_url = urlparse(url)
