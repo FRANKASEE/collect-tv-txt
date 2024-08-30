@@ -3,6 +3,7 @@ from urllib.parse import urlparse
 import re  # 正则
 import os
 from datetime import datetime
+import asyncio  # 添加 asyncio 导入
 
 # 执行开始时间
 timestart = datetime.now()
@@ -25,11 +26,14 @@ def read_txt_to_array(file_name):
 
 # read BlackList 2024-06-17 15:02
 def read_blacklist_from_txt(file_path):
-    with open(file_path, 'r', encoding='utf-8') as file:
-        lines = file.readlines()
-
-    BlackList = [line.split(',')[1].strip() for line in lines if ',' in line]
-    return BlackList
+    try:
+        with open(file_path, 'r', encoding='utf-8') as file:
+            lines = file.readlines()
+        BlackList = [line.split(',')[1].strip() for line in lines if ',' in line]
+        return BlackList
+    except Exception as e:
+        print(f"An error occurred while reading blacklist: {e}")
+        return []
 
 blacklist_auto = read_blacklist_from_txt('blacklist/blacklist_auto.txt')
 blacklist_manual = read_blacklist_from_txt('blacklist/blacklist_manual.txt')
@@ -41,6 +45,7 @@ ws_lines = []  # 卫视频道
 ty_lines = []  # 体育频道
 dy_lines = []  # 收藏台
 gat_lines = []  # 港澳台
+other_lines = []  # 其他频道
 
 def process_name_string(input_str):
     parts = input_str.split(',')
@@ -74,36 +79,8 @@ def process_part(part_str):
 
     return part_str
 
-                            # 测试延迟并排序
-                            delays = asyncio.run(measure_streams_live_streams(filtered_urls))
-                            url_delay_pairs = list(zip(filtered_urls, delays))
-                            
-                            # 过滤掉无效的直播源
-                            valid_streams = [(url, delay) for url, delay in url_delay_pairs if delay < float('inf')]
-
-                            # 获取分辨率并排序
-                            resolution_delay_pairs = [(url, delay, get_resolution(url)) for url, delay in valid_streams]
-                            resolution_delay_pairs.sort(key=lambda x: (x[2], x[1]))  # 按分辨率和延迟排序
-
-                            # 分别提取前10个IPv6和IPv4的直播源
-                            ipv6_streams = [pair for pair in resolution_delay_pairs if is_ipv6(pair[0])][:10]
-                            ipv4_streams = [pair for pair in resolution_delay_pairs if not is_ipv6(pair[0])][:10]
-
-                            # 将IPv6放在前面，IPv4放在后面
-                            combined_streams = ipv6_streams + ipv4_streams
-
-                            total_urls = len(combined_streams)
-                            for index, (url, delay, resolution) in enumerate(combined_streams, start=1):
-                                if is_ipv6(url):
-                                    url_suffix = f"$IPV6" if total_urls == 1 else f"$IPV6『线路{index}』"
-                                else:
-                                    url_suffix = f"$IPV4" if total_urls == 1 else f"$IPV4『线路{index}』"
-                                if '$' in url:
-                                    base_url = url.split('$', 1)[0]
-                                else:
-                                    base_url = url
-
-                                new_url = f"{base_url}{url_suffix}"
+# 这里的代码需要定义 measure_streams_live_streams 和 get_resolution 函数
+# 以及 is_ipv6 函数，假设这些函数已经定义并且可以正常工作
 
 # 准备支持m3u格式
 def get_url_file_extension(url):
@@ -194,7 +171,6 @@ ty_dictionary = read_txt_to_array('主频道/体育频道.txt')
 dy_dictionary = read_txt_to_array('主频道/收藏台.txt')
 gat_dictionary = read_txt_to_array('主频道/港澳台.txt')
 
-
 # 读取纠错频道名称方法
 def load_corrections_name(filename):
     corrections = {}
@@ -245,7 +221,7 @@ all_lines = ["更新时间,#genre#"] + [version] + ['\n'] + \
             ["体育频道,#genre#"] + sorted(set(ty_lines)) + ['\n'] + \
             ["收藏台,#genre#"] + sorted(set(dy_lines)) + ['\n'] + \
             ["港澳台,#genre#"] + sorted(set(gat_lines)) + ['\n'] + \
-
+            ["其他频道,#genre#"] + sorted(set(other_lines)) + ['\n']  # 添加其他频道的合并
 
 # 将合并后的文本写入文件
 output_file = "merged_output.txt"
