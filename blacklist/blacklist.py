@@ -279,6 +279,11 @@ if __name__ == "__main__":
         'https://raw.githubusercontent.com/hujingguang/ChinaIPTV/main/cnTV_AutoUpdate.m3u8', #15分钟更新1次   # 【2024-08-01 10:40:29】
         'https://raw.githubusercontent.com/PizazzGY/TVBox/main/live.txt', # 【2024-08-01 10:40:29】
         'https://raw.githubusercontent.com/pxiptv/live/main/iptv.txt', # 【2024-08-02 16:48:40】#每日更新1次
+        'https://9295.kstore.space/ipv6.txt', 
+        'https://9295.kstore.space/ipv.txt', 
+        'https://raw.githubusercontent.com/LuckyLearning/TV/master/local.txt', 
+        'https://gist.githubusercontent.com/inkss/0cf33e9f52fbb1f91bc5eb0144e504cf/raw/ipv6.m3u', 
+        'https://raw.githubusercontent.com/zhumeng11/IPTV/main/IPTV.m3u', 
         'https://notabug.org/vnjd/yydu/raw/master/yyfug.txt', # 【2024-08-06】
         'https://tvkj.top/tvlive.txt', # 【2024-08-06】
         'https://pan.beecld.com/f/OXMcA/%E6%98%A5%E8%B5%A2%E5%A4%A9%E4%B8%8B.txt', # 【2024-08-06】
