@@ -36,16 +36,11 @@ blacklist_manual = read_blacklist_from_txt('blacklist/blacklist_manual.txt')
 combined_blacklist = set(blacklist_auto + blacklist_manual)
 
 # 定义多个对象用于存储不同内容的行文本
-sh_lines = []
 ys_lines = []  # CCTV
 ws_lines = []  # 卫视频道
 ty_lines = []  # 体育频道
 dy_lines = []
-dsj_lines = []
 gat_lines = []  # 港澳台
-gj_lines = []  # 国际台
-jlp_lines = []  # 纪录片
-other_lines = []
 
 def process_name_string(input_str):
     parts = input_str.split(',')
@@ -126,16 +121,8 @@ def process_channel_line(line):
                 ty_lines.append(process_name_string(line.strip()))
             elif channel_name in dy_lines and check_url_existence(dy_lines, channel_address):
                 dy_lines.append(process_name_string(line.strip()))
-            elif channel_name in dsj_lines and check_url_existence(dsj_lines, channel_address):
-                dsj_lines.append(process_name_string(line.strip()))
-            elif channel_name in sh_lines and check_url_existence(sh_lines, channel_address):
-                sh_lines.append(process_name_string(line.strip()))
             elif channel_name in gat_lines and check_url_existence(gat_lines, channel_address):
                 gat_lines.append(process_name_string(line.strip()))
-            elif channel_name in gj_lines and check_url_existence(gj_lines, channel_address):
-                gj_lines.append(process_name_string(line.strip()))
-            elif channel_name in jlp_lines and check_url_existence(jlp_lines, channel_address):
-                jlp_lines.append(process_name_string(line.strip()))
             else:
                 other_lines.append(line.strip())
 
@@ -171,14 +158,10 @@ current_directory = os.getcwd()
 
 # 读取文本
 ys_dictionary = read_txt_to_array('主频道/CCTV.txt')
-sh_dictionary = read_txt_to_array('主频道/shanghai.txt')
 ws_dictionary = read_txt_to_array('主频道/卫视频道.txt')
 ty_dictionary = read_txt_to_array('主频道/体育频道.txt')
 dy_dictionary = read_txt_to_array('主频道/电影.txt')
-dsj_dictionary = read_txt_to_array('主频道/电视剧.txt')
 gat_dictionary = read_txt_to_array('主频道/港澳台.txt')
-gj_dictionary = read_txt_to_array('主频道/国际台.txt')
-jlp_dictionary = read_txt_to_array('主频道/纪录片.txt')
 
 # 定义
 urls = read_txt_to_array('assets/urls-daily.txt')
@@ -225,20 +208,12 @@ for url in urls:
 # 合并所有对象中的行文本（去重，排序后拼接）
 version = datetime.now().strftime("%Y%m%d-%H-%M-%S") + ",url"
 all_lines = ["更新时间,#genre#"] + [version] + ['\n'] + \
-            ["专享源1️,#genre#"] + read_txt_to_array('主频道/♪专享源①.txt') + ['\n'] + \
-            ["专享源2️,#genre#"] + read_txt_to_array('主频道/♪专享源②.txt') + ['\n'] + \
-            ["专享央视,#genre#"] + read_txt_to_array('主频道/♪优质央视.txt') + ['\n'] + \
-            ["优质源,#genre#"] + read_txt_to_array('主频道/♪优质源.txt') + ['\n'] + \
             ["央视频道,#genre#"] + sorted(set(ys_lines)) + ['\n'] + \
             ["卫视频道,#genre#"] + sorted(set(ws_lines)) + ['\n'] + \
-            ["上海频道,#genre#"] + sorted(set(sh_lines)) + ['\n'] + \
             ["体育频道,#genre#"] + sorted(set(ty_lines)) + ['\n'] + \
             ["电影频道,#genre#"] + sorted(set(dy_lines)) + ['\n'] + \
-            ["电视剧频道,#genre#"] + sorted(set(dsj_lines)) + ['\n'] + \
             ["港澳台,#genre#"] + sorted(set(gat_lines)) + ['\n'] + \
-            ["国际台,#genre#"] + sorted(set(gj_lines)) + ['\n'] + \
-            ["纪录片,#genre#"] + sorted(set(jlp_lines)) + ['\n'] + \
-            ["直播中国,#genre#"] + sorted(set(other_lines)) + ['\n']
+
 
 # 将合并后的文本写入文件
 output_file = "merged_output.txt"
