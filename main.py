@@ -35,6 +35,9 @@ blacklist_auto = read_blacklist_from_txt('blacklist/blacklist_auto.txt')
 blacklist_manual = read_blacklist_from_txt('blacklist/blacklist_manual.txt')
 combined_blacklist = set(blacklist_auto + blacklist_manual)
 
+# 读取可用频道
+valid_channels = set(read_channels_from_demo('demo.txt'))
+
 # 定义多个对象用于存储不同内容的行文本
 channel_dict = {}
 
@@ -111,6 +114,7 @@ def process_channel_line(line, channel_dict):
 
 def process_url(url, channel_dict):
     try:
+        # 处理“其他频道”逻辑
         other_lines = channel_dict.setdefault("其他频道", [])
         other_lines.append("◆◆◆　" + url)
         with urllib.request.urlopen(url) as response:
@@ -139,7 +143,7 @@ def process_url(url, channel_dict):
         print(f"处理URL时发生错误：{e}")
 
 # 主执行流程
-urls = read_txt_to_array('assets/urls-daily.txt
+urls = read_txt_to_array('assets/urls-daily.txt')
 
 # 处理
 for url in urls:
@@ -150,10 +154,12 @@ for url in urls:
 version = datetime.now().strftime("%Y%m%d-%H-%M-%S") + ",url"
 all_lines = ["更新时间,#genre#"] + [version] + ['\n']
 
-for channel, lines in channel_dict.items():
-    channel_header = [f"{channel},#genre#"]
-    sorted_lines = sorted(set(lines))
-    all_lines += channel_header + sorted_lines + ['\n']
+# 根据demo.txt列表内的频道构建最终输出
+for channel in valid_channels:
+    if channel in channel_dict:
+        channel_header = [f"{channel},#genre#"]
+        sorted_lines = sorted(set(channel_dict[channel]))
+        all_lines += channel_header + sorted_lines + ['\n']
 
 # 输出结果到文件
 output_file = "merged_output.txt"
