@@ -20,6 +20,18 @@ def read_channels_from_demo(file_path):
         print(f"An error occurred: {e}")
         return []
 
+# 读取文本文件为数组
+def read_txt_to_array(file_path):
+    try:
+        with open(file_path, 'r', encoding='utf-8') as file:
+            return [line.strip() for line in file.readlines()]
+    except FileNotFoundError:
+        print(f"File '{file_path}' not found.")
+        return []
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return []
+
 # 黑名单读取
 def read_blacklist_from_txt(file_path):
     try:
