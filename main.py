@@ -126,7 +126,6 @@ def process_channel_line(line, channel_dict):
 
 def process_url(url, channel_dict):
     try:
-        # 处理“其他频道”逻辑
         other_lines = channel_dict.setdefault("其他频道", [])
         other_lines.append("◆◆◆　" + url)
         with urllib.request.urlopen(url) as response:
@@ -160,7 +159,7 @@ urls = read_txt_to_array('assets/urls-daily.txt')
 # 处理
 for url in urls:
     print(f"处理URL: {url}")
-    process_url(url)
+    process_url(url, channel_dict)  # 确保在这里传递了 channel_dict
 
 # 合并所有对象中的行文本（去重，排序后拼接）
 version = datetime.now().strftime("%Y%m%d-%H-%M-%S") + ",url"
