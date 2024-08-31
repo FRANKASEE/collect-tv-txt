@@ -1,4 +1,3 @@
-http://rihou.cc:555/gggg.nzk
 https://gitlab.com/tvtg/vip/-/raw/main/log.txt
 https://cdn05042023.gitlink.org.cn/api/v1/repos/xuanbei/tv/raw/live.txt
 https://d.kstore.space/download/7395/xiaohei.txt
